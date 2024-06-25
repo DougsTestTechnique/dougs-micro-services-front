@@ -10,7 +10,7 @@
         >
           Difference: {{ anomaly.difference }} €
         </q-chip>
-        <div>{{ anomaly.missingTransactions }}</div>
+        <div>{{ anomaly.message }}</div>
         <q-list>
           <q-item v-for="(movement, mIndex) in anomaly.movements" :key="mIndex">
             <q-item-section>

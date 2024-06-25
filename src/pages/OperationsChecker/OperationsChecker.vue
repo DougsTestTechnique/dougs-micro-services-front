@@ -1,9 +1,9 @@
 <template>
   <q-page class="flex flex-center q-pa-md">
     <div class="column items-center q-gutter-md q-mx-md full-width">
-        <h4>Ce micro service permet de comparer deux fichiers JSON</h4>
-        <p>1) Fichier JSON de Scrapping des entreprises externes</p>
-        <p>1) Fichier JSON de relevé bancaire</p>
+      <h4>Ce micro service permet de comparer deux fichiers JSON :</h4>
+      <p>1) Fichier JSON de Scrapping des entreprises externes</p>
+      <p>1) Fichier JSON de relevé bancaire</p>
 
       <!-- Affichage ddes deux uplodaers + bouton validation -->
       <div class="row q-gutter-md full-width">
@@ -37,10 +37,14 @@
       <!-- Affichage du composant AnomalyCard -->
       <div v-if="!loading && result">
         <div v-if="result.anomalies && result.anomalies.length > 0">
-          <anomaly-card v-for="(anomaly, index) in result.anomalies" :key="index" :anomaly="anomaly" />
+          <anomaly-card
+            v-for="(anomaly, index) in result.anomalies"
+            :key="index"
+            :anomaly="anomaly"
+          />
         </div>
-  
-      <!-- Affichage d'une card vide -->
+
+        <!-- Affichage d'une card vide -->
         <div v-else>
           <q-card class="q-ma-md">
             <q-card-section>
@@ -70,8 +74,7 @@ const bankFile = ref<File[]>([]);
 const jsonContentsScrapping = ref<object[]>([]);
 const jsonContentsBank = ref<object[]>([]);
 const loading = ref(false);
-const result = ref<Result | null>(null); 
-
+const result = ref<Result | null>(null);
 
 // Fonctions d'ajout des fichiers JSON
 const handleFileUpload1 = (files: readonly File[]) => {
@@ -95,7 +98,7 @@ const readFiles = (files: File[], jsonContents: Ref<object[]>) => {
       } catch (e) {
         Notify.create({
           message: 'Erreur de parsing JSON',
-          color: 'negative'
+          color: 'negative',
         });
       }
     };
@@ -105,7 +108,10 @@ const readFiles = (files: File[], jsonContents: Ref<object[]>) => {
 
 // Fonction d'appel vers l'API Back-end
 const validateImports = async () => {
-  if (jsonContentsScrapping.value.length > 0 && jsonContentsBank.value.length > 0) {
+  if (
+    jsonContentsScrapping.value.length > 0 &&
+    jsonContentsBank.value.length > 0
+  ) {
     loading.value = true;
     result.value = null;
     try {
@@ -115,22 +121,22 @@ const validateImports = async () => {
       });
       result.value = response.data as Result;
       Notify.create({
-          message: 'Fichiers analysées avec succès !',
-          color: 'positive'
-        });
+        message: 'Fichiers analysés avec succès !',
+        color: 'positive',
+      });
     } catch (error) {
       console.error('Erreur :', error);
       Notify.create({
-          message: 'Erreur lors de l\'appel à l\'API.',
-          color: 'negative'
-        });
+        message: "Erreur lors de l'appel à l'API.",
+        color: 'negative',
+      });
     } finally {
       loading.value = false;
     }
   } else {
     Notify.create({
       message: 'Veuillez téléverser les fichiers JSON dans les deux champs.',
-      color: 'negative'
+      color: 'negative',
     });
   }
 };

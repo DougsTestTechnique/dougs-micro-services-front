@@ -11,7 +11,7 @@ export interface Movement {
     actual: number;
     difference: number;
     movements: Movement[];
-    missingTransactions: string;
+    message: string;
   }
   
   export interface Result {
