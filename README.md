@@ -75,11 +75,10 @@ Accédez à l'application via votre navigateur à l'adresse `http://localhost:80
 
 Naviguez vers la route /operations-checker pour accéder à la page de validation des opérations.
 
-**Auteur**
+## Auteur
 
 NICOLAS MAZZOLENI mazzoleni.nicolas@gmail.com
 
-**Licence**
+## Licence
 
 Ce projet est sous licence MIT. Voir le fichier LICENSE pour plus de détails.
-
