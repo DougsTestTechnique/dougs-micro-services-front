@@ -75,6 +75,16 @@ Accédez à l'application via votre navigateur à l'adresse `http://localhost:80
 
 Naviguez vers la route /operations-checker pour accéder à la page de validation des opérations.
 
+### Pour Aller Plus Loin
+
+Les améliorations sur ce projet de test sont : 
+
+1) Une meilleurs gestions des fichiers JSON
+
+2) La possibilité d'ajouter plusieurs fichiers JSON
+
+3) Ajouter plus d'informations sur l'interface pour faciliter le travail des comptables
+
 ## Auteur
 
 NICOLAS MAZZOLENI mazzoleni.nicolas@gmail.com
