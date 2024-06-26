@@ -1,0 +1,171 @@
+version: 2.1
+
+orbs:
+  aws-cli: circleci/aws-cli@1.0.0
+
+jobs:
+  build_dev:
+    working_directory: ~/project
+    docker:
+      - image: circleci/node:16
+
+    parameters:
+      stage:
+        type: string
+        default: "STAGING"
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install Dependencies
+          command: yarn install --frozen-lockfile
+
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+
+      - run:
+          name: Build project in development mode
+          command: yarn build:dev
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - dist
+
+  build_prod:
+    working_directory: ~/project
+    docker:
+      - image: circleci/node:16
+
+    parameters:
+      stage:
+        type: string
+        default: "STAGING"
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install Dependencies
+          command: yarn install --frozen-lockfile
+
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+
+      - run:
+          name: Build project in production mode
+          command: yarn build:prod
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - dist
+
+  deploy:
+    working_directory: ~/project
+    executor: aws-cli/default
+
+    parameters:
+      stage:
+        type: string
+        default: "STAGING"
+
+      application-bucket:
+        type: env_var_name
+
+      aws-region:
+        type: env_var_name
+
+      aws-access-key-id:
+        type: env_var_name
+
+      aws-secret-access-key:
+        type: env_var_name
+
+    steps:
+      - attach_workspace:
+          at: .
+
+      - aws-cli/setup:
+          aws-access-key-id: "<< parameters.aws-access-key-id >>"
+          aws-secret-access-key: "<< parameters.aws-secret-access-key >>"
+          aws-region: "<< parameters.aws-region >>"
+          configure-default-region: false
+
+      - run:
+          name: Deploy to S3
+          command: |
+            aws s3 sync \
+            dist/ \
+            s3://"$<< parameters.application-bucket >>"/ \
+              --region "$<< parameters.aws-region >>" \
+              --cache-control max-age=31536000,public \
+
+      - run:
+          name: Change index.html cache control headers
+          command: |
+            aws s3 cp \
+            s3://"$<< parameters.application-bucket >>"/index.html \
+            s3://"$<< parameters.application-bucket >>"/index.html \
+              --region "$<< parameters.aws-region >>" \
+              --metadata-directive REPLACE \
+              --content-type 'text/html' \
+              --cache-control max-age=0,no-cache,no-store,must-revalidate
+
+workflows:
+  staging_flow:
+    jobs:
+      - build_dev:
+          stage: "STAGING"
+          filters:
+            branches:
+              only:
+                - master
+      - deploy:
+          stage: "STAGING"
+          aws-region: AWS_REGION
+          application-bucket: STAGING_APPLICATION_BUCKET
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          requires:
+            - build_dev
+          filters:
+            branches:
+              only:
+                - master
+
+  prod_flow:
+    jobs:
+      - hold:
+          type: approval
+          filters:
+            branches:
+              only:
+                - master
+      - build_prod:
+          stage: "PROD"
+          filters:
+            branches:
+              only:
+                - master
+      - deploy:
+          stage: "PROD"
+          aws-region: AWS_REGION
+          application-bucket: PROD_APPLICATION_BUCKET
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          requires:
+            - hold
+            - build_prod
+          filters:
+            branches:
+              only:
+                - master
+          
